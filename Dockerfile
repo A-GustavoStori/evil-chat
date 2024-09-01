@@ -1,25 +1,30 @@
-# Dockerfile for Ollama
-
 # Use an official base image with Docker support
-FROM ubuntu:20.04
+FROM ubuntu:22.04
+
+# Set environment variables to reduce interactions during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install necessary dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
+    gnupg \
     sudo \
-    gnupg && \
-    curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
-    apt-get install -y nodejs
-
-# Install Docker
-RUN apt-get install -y docker.io
+    apt-transport-https \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Ollama
-RUN curl -sSL https://ollama.com/install.sh | sh
+RUN curl -fsSL https://ollama.com/install.sh | sh
 
-# Expose the default port for Ollama (e.g., 11434)
+# Expose the default port for Ollama
 EXPOSE 11434
 
-# Start the Docker service and Ollama
-CMD service docker start && ollama pull CognitiveComputations/dolphin-llama3.1 && ollama run CognitiveComputations/dolphin-llama3.1 --serve
+# Create a directory for Ollama data
+RUN mkdir -p /root/.ollama
+
+# Set the working directory
+WORKDIR /root
+
+# Run the CognitiveComputations/dolphin-llama3.1:8b model
+CMD ["ollama", "run", "CognitiveComputations/dolphin-llama3.1:8b"]
